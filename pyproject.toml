@@ -1,24 +1,31 @@
 [project]
-name = "trip-planner-crew"
+name = "trip-planner"
 version = "0.1.0"
-description = ""
+description = "CrewAI 기반 여행 플래너 - 도시 선정, 현지 정보, 일정 계획"
 authors = [{name = "Your Name", email = "you@example.com"}]
 requires-python = ">=3.10.0,<3.12"
+readme = "README.md"
 dependencies = [
     "crewai>=0.152.0",
     "unstructured==0.10.25",
     "pyowm==3.3.0",
-    "tools>=0.1.9",
     "python-dotenv==1.0.0",
-    "langchain[llms,openai]>=1.0.5",
+    "langchain>=1.0.5",
     "langchain-openai>=1.0.2",
     "langchain-community>=0.4.1",
 ]
 
+[project.scripts]
+trip-planner = "trip_planner.main:run"
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [tool.pyright]
 # https://github.com/microsoft/pyright/blob/main/docs/configuration.md
 useLibraryCodeForTypes = true
-exclude = [".cache"]
+exclude = [".cache", "build", "dist"]
 
 [tool.ruff]
 # https://beta.ruff.rs/docs/configuration/

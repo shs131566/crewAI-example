@@ -1,95 +1,169 @@
-# AI Crew for Trip Planning
-## Introduction
-This project is an example using the CrewAI framework to automate the process of planning a trip if you are in doubt between different options. CrewAI orchestrates autonomous AI agents, enabling them to collaborate and execute complex tasks efficiently.
+# 여행 플래너 CrewAI
 
-By [@joaomdmoura](https://x.com/joaomdmoura)
+CrewAI를 사용한 지능형 여행 계획 시스템입니다. 여러 AI 에이전트가 협력하여 최적의 여행 계획을 수립합니다.
 
-- [CrewAI Framework](#crewai-framework)
-- [Running the script](#running-the-script)
-- [Details & Explanation](#details--explanation)
-- [Using GPT 3.5](#using-gpt-35)
-- [Using Local Models with Ollama](#using-local-models-with-ollama)
-- [Contributing](#contributing)
-- [Support and Contact](#support-and-contact)
-- [License](#license)
+## 목차
 
-## CrewAI Framework
-CrewAI is designed to facilitate the collaboration of role-playing AI agents. In this example, these agents work together to choose between different of cities and put together a full itinerary for the trip based on your preferences.
+- [주요 기능](#주요-기능)
+- [프로젝트 구조](#프로젝트-구조)
+- [설치](#설치)
+- [사용법](#사용법)
+- [에이전트](#에이전트)
+- [도구](#도구)
+- [GPT 3.5 사용](#gpt-35-사용)
+- [Ollama 로컬 모델 사용](#ollama-로컬-모델-사용)
+- [라이센스](#라이센스)
 
-## Running the Script
-It uses GPT-4 by default so you should have access to that to run it.
+## 주요 기능
 
-***Disclaimer:** This will use gpt-4 unless you changed it 
-not to, and by doing so it will cost you money.*
+- 🌍 **도시 선정**: 날씨, 계절, 가격을 분석하여 최적의 여행 도시 선택
+- 📍 **현지 정보**: 현지 전문가 수준의 명소, 문화, 관습 정보 제공
+- 📅 **일정 계획**: 7일간의 상세한 여행 일정, 예산, 짐 싸기 가이드
 
-- **Configure Environment**: Copy ``.env.example` and set up the environment variables for [Browseless](https://www.browserless.io/), [Serper](https://serper.dev/) and [OpenAI](https://platform.openai.com/api-keys)
-- **Install Dependencies**: Run `poetry install --no-root`.
-- **Execute the Script**: Run `poetry run python main.py` and input your idea.
+## 프로젝트 구조
 
-## Details & Explanation
-- **Running the Script**: Execute `python main.py`` and input your idea when prompted. The script will leverage the CrewAI framework to process the idea and generate a landing page.
-- **Key Components**:
-  - `./main.py`: Main script file.
-  - `./trip_tasks.py`: Main file with the tasks prompts.
-  - `./trip_agents.py`: Main file with the agents creation.
-  - `./tools`: Contains tool classes used by the agents.
+```
+trip_planner/
+├── src/
+│   └── trip_planner/
+│       ├── __init__.py
+│       ├── crew.py          # Crew 정의
+│       ├── main.py          # CLI 진입점
+│       ├── agents.py        # 에이전트 정의
+│       ├── tasks.py         # 태스크 정의
+│       └── tools/           # 도구들
+│           ├── browser_tools.py
+│           ├── calculator_tools.py
+│           └── search_tools.py
+├── main.py                  # 실행 파일
+├── pyproject.toml
+└── .env
+```
 
-## Using GPT 3.5
-CrewAI allow you to pass an llm argument to the agent constructor, that will be it's brain, so changing the agent to use GPT-3.5 instead of GPT-4 is as simple as passing that argument on the agent you want to use that LLM (in `main.py`).
+## 설치
+
+1. 환경 변수 설정 (`.env` 파일):
+```env
+OPENAI_API_KEY=your_openai_key
+SERPER_API_KEY=your_serper_key
+BROWSERLESS_API_KEY=your_browserless_key
+```
+
+2. 의존성 설치:
+```bash
+uv sync
+```
+
+**주의**: 기본적으로 GPT-4를 사용하므로 API 비용이 발생합니다.
+
+## 사용법
+
+### 기본 실행
+```bash
+python main.py
+# 또는
+python main.py run
+```
+
+### 훈련
+```bash
+python main.py train
+```
+
+### 재생 (이전 실행 재생)
+```bash
+python main.py replay
+```
+
+### 테스트
+```bash
+python main.py test
+```
+
+## 에이전트
+
+### 1. 도시 선정 전문가
+- 날씨, 계절 이벤트, 여행 비용 분석
+- 최적의 도시 추천
+
+### 2. 현지 전문가
+- 현지인만 아는 명소 발굴
+- 문화적 인사이트 제공
+- 실용적인 여행 팁
+
+### 3. 여행 컨시어지
+- 7일 상세 일정 작성
+- 예산 분석 및 관리
+- 짐 싸기 가이드
+
+## 도구
+
+- **인터넷 검색**: Serper API를 통한 실시간 정보 검색
+- **웹 스크래핑**: Browserless를 통한 웹사이트 콘텐츠 수집 및 요약
+- **계산기**: 여행 비용 계산
+
+## GPT 3.5 사용
+
+CrewAI는 에이전트 생성자에 llm 인자를 전달할 수 있습니다. GPT-4 대신 GPT-3.5를 사용하려면 에이전트에 해당 인자를 전달하면 됩니다 (`agents.py`에서):
+
 ```python
 from langchain.chat_models import ChatOpenAI
 
-llm = ChatOpenAI(model='gpt-3.5') # Loading GPT-3.5
+llm = ChatOpenAI(model='gpt-3.5')  # GPT-3.5 로딩
 
 def local_expert(self):
-	return Agent(
-		role='Local Expert at this city',
-		goal='Provide the BEST insights about the selected city',
-		backstory="""A knowledgeable local guide with extensive information
-		about the city, it's attractions and customs""",
-		tools=[
-			SearchTools.search_internet,
-			BrowserTools.scrape_and_summarize_website,
-		],
-		llm=llm, # <----- passing our llm reference here
-		verbose=True
-	)
+    return Agent(
+        role='현지 전문가',
+        goal='선택된 도시에 대한 최고의 인사이트를 제공합니다',
+        backstory="""도시의 명소와 관습에 대한 풍부한 정보를 가진
+        지식이 풍부한 현지 가이드입니다""",
+        tools=[
+            search_internet,
+            scrape_and_summarize_website,
+        ],
+        llm=llm,  # <----- llm 참조 전달
+        verbose=True
+    )
 ```
 
-## Using Local Models with Ollama
-The CrewAI framework supports integration with local models, such as Ollama, for enhanced flexibility and customization. This allows you to utilize your own models, which can be particularly useful for specialized tasks or data privacy concerns.
+## Ollama 로컬 모델 사용
 
-### Setting Up Ollama
-- **Install Ollama**: Ensure that Ollama is properly installed in your environment. Follow the installation guide provided by Ollama for detailed instructions.
-- **Configure Ollama**: Set up Ollama to work with your local model. You will probably need to [tweak the model using a Modelfile](https://github.com/jmorganca/ollama/blob/main/docs/modelfile.md), I'd recommend adding `Observation` as a stop word and playing with `top_p` and `temperature`.
+CrewAI는 Ollama와 같은 로컬 모델과의 통합을 지원하여 유연성과 커스터마이징을 향상시킵니다. 특수 작업이나 데이터 프라이버시가 중요한 경우 유용합니다.
 
-### Integrating Ollama with CrewAI
-- Instantiate Ollama Model: Create an instance of the Ollama model. You can specify the model and the base URL during instantiation. For example:
+### Ollama 설정
+- **Ollama 설치**: 환경에 Ollama가 제대로 설치되어 있는지 확인하세요.
+- **Ollama 구성**: [Modelfile을 사용하여 모델 조정](https://github.com/jmorganca/ollama/blob/main/docs/modelfile.md)이 필요할 수 있습니다. `Observation`을 stop word로 추가하고 `top_p`와 `temperature`를 조정하는 것을 권장합니다.
+
+### CrewAI와 Ollama 통합
 
 ```python
 from langchain.llms import Ollama
 ollama_openhermes = Ollama(model="agent")
-# Pass Ollama Model to Agents: When creating your agents within the CrewAI framework, you can pass the Ollama model as an argument to the Agent constructor. For instance:
 
 def local_expert(self):
-	return Agent(
-		role='Local Expert at this city',
-		goal='Provide the BEST insights about the selected city',
-		backstory="""A knowledgeable local guide with extensive information
-		about the city, it's attractions and customs""",
-		tools=[
-			SearchTools.search_internet,
-			BrowserTools.scrape_and_summarize_website,
-		],
-		llm=ollama_openhermes, # Ollama model passed here
-		verbose=True
-	)
+    return Agent(
+        role='현지 전문가',
+        goal='선택된 도시에 대한 최고의 인사이트를 제공합니다',
+        backstory="""도시의 명소와 관습에 대한 풍부한 정보를 가진
+        지식이 풍부한 현지 가이드입니다""",
+        tools=[
+            search_internet,
+            scrape_and_summarize_website,
+        ],
+        llm=ollama_openhermes,  # Ollama 모델 전달
+        verbose=True
+    )
 ```
 
-### Advantages of Using Local Models
-- **Privacy**: Local models allow processing of data within your own infrastructure, ensuring data privacy.
-- **Customization**: You can customize the model to better suit the specific needs of your tasks.
-- **Performance**: Depending on your setup, local models can offer performance benefits, especially in terms of latency.
+### 로컬 모델 사용의 장점
+- **프라이버시**: 자체 인프라 내에서 데이터 처리 가능
+- **커스터마이징**: 특정 작업 요구사항에 맞게 모델 커스터마이징 가능
+- **성능**: 설정에 따라 지연시간 측면에서 성능 이점 제공
 
-## License
-This project is released under the MIT License.
+## 라이센스
+
+이 프로젝트는 MIT 라이센스로 배포됩니다.
+
+---
+
+Original project by [@joaomdmoura](https://x.com/joaomdmoura)
